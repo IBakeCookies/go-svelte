@@ -15,12 +15,26 @@ const aboutTemplateHtml = isProduction
   ? await fs.readFile("./dist/client/index-about.html", "utf-8")
   : "";
 
+const spaTemplate = isProduction
+  ? await fs.readFile("./dist/client/index-spa.html", "utf-8")
+  : "";
+
+const spaTemplate1 = isProduction
+  ? await fs.readFile("./dist/client/index-spa1.html", "utf-8")
+  : "";
+
+const spaTemplate2 = isProduction
+  ? await fs.readFile("./dist/client/index-spa2.html", "utf-8")
+  : "";
+
 const ssrManifest = isProduction
   ? await fs.readFile("./dist/client/.vite/ssr-manifest.json", "utf-8")
   : undefined;
 
 // Create http server
 const app = express();
+
+app.use(express.json());
 
 // Add Vite or respective production middlewares
 let vite;
@@ -60,225 +74,81 @@ async function readCss() {
   - node renders the component and returns the html to the go server
   - go server takes the html and inserts it where needed and rends that page back to the client
   - before go sends that page, there one last thing it has to do, which is adding a script tag in the file that will add the data needed to the window object. Something like 
-        .replace(<!--app-data-script-->, <script>window.__order__ = ${JSON.stringify(order)}</script>);
+        .replace(<!--app-data-script-->, <script>window.__initialData__ = ${JSON.stringify(order)}</script>);
   - then the code on the client should use that object on the window to hydrate the component. Something like 
   // for svelte an entry.js file that looks like this
   new App({
     target: document.getElementById("app"),
     hydrate: true,
     props: {
-      order: window.__order__,
+      order: window.__initialData__,
     },
   });
 */
 
-app.get("/", async (req, res) => {
-  try {
-    const url = req.originalUrl.replace(base, "");
+function useRoute(templateToRead, name, prodTemplate) {
+  return async (req, res) => {
+    try {
+      const url = req.originalUrl.replace(base, "");
 
-    let template;
-    let render;
-    if (!isProduction) {
-      // Always read fresh template in development
-      template = await fs.readFile("./index.html", "utf-8");
-      template = await vite.transformIndexHtml(url, template);
-      render = (await vite.ssrLoadModule("/src/entry-server.ts")).render;
-    } else {
-      template = templateHtml;
-      render = (await import("./dist/entry-server.js")).render;
-    }
+      let template;
+      let render;
 
-    cache.css = cache.css || (await readCss());
+      if (!isProduction) {
+        // Always read fresh template in development
+        template = await fs.readFile(templateToRead, "utf-8");
+        template = await vite.transformIndexHtml(url, template);
+        render = (await vite.ssrLoadModule("./src/entry-server.ts")).render;
+      } else {
+        template = prodTemplate;
+        render = (await import("./dist/server/entry-server.js")).render;
+      }
 
-    const order = {
-      id: "1",
-      quantity: Math.random() * 100,
-    };
+      cache.css = cache.css || (await readCss());
 
-    // const rendered = await render(url, ssrManifest);
-    const rendered = await render({ order, name: "index" });
+      // const order = req.body.order
 
-    // const entry = await fs.readFile(
-    //   "./src/entry-client-placeholder.ts",
-    //   "utf-8"
-    // );
-    // const entryWithData = entry.replace(
-    //   "/* __data__ */",
-    //   `order: ${JSON.stringify(order)}`
-    // );
-    // await fs.writeFile("./src/entry-client.ts", entryWithData);
+      const initialData = {
+        random: Math.random() * 100,
+      };
 
-    // console.log(rendered);
+      // const rendered = await render(url, ssrManifest);
+      const rendered = await render({ initialData, name });
 
-    const html = template
-      .replace(`<!--app-head-->`, rendered.head ?? "")
-      .replace(`<!--app-html-->`, rendered.html ?? "")
-      .replace(
-        `<!--app-css-->`,
-        `<style>${cache.css}${rendered.css.code ?? ""}</style>`
-      )
-      .replace(
-        `<!--app-script-->`,
+      const html = template
+        .replace(`<!--app-head-->`, rendered.head ?? "")
+        .replace(`<!--app-html-->`, rendered.html ?? "")
+        .replace(
+          `<!--app-css-->`,
+          `<style>${cache.css}${rendered.css.code ?? ""}</style>`
+        )
+        .replace(
+          `<!--app-script-->`,
+          `
+          <script>
+            window.__initialData__ = ${JSON.stringify(initialData)}
+          </script>
         `
-        <script>
-          window.__order__ = ${JSON.stringify(order)}
-        </script>
-      `
-      );
+        );
 
-    res.status(200).set({ "Content-Type": "text/html" }).end(html);
-  } catch (e) {
-    vite?.ssrFixStacktrace(e);
-    console.log(e.stack);
-    res.status(500).end(e.stack);
-  }
-});
-
-app.get("/about", async (req, res) => {
-  try {
-    const url = req.originalUrl.replace(base, "");
-
-    let template;
-    let render;
-    if (!isProduction) {
-      // Always read fresh template in development
-      template = await fs.readFile("./index-about.html", "utf-8");
-      template = await vite.transformIndexHtml(url, template);
-      render = (await vite.ssrLoadModule("/src/entry-server.ts")).render;
-    } else {
-      template = aboutTemplateHtml;
-      render = (await import("./dist/entry-server.js")).render;
+      res.status(200).set({ "Content-Type": "text/html" }).end(html);
+    } catch (e) {
+      vite?.ssrFixStacktrace(e);
+      console.log(e.stack);
+      res.status(500).end(e.stack);
     }
+  };
+}
 
-    const css = await fs.readFile("./src/app.css", "utf-8");
+app.get("/", useRoute("./index.html", "index", templateHtml));
 
-    const rendered = await render({ name: "about" });
-    const html = template
-      .replace(`<!--app-head-->`, rendered.head ?? "")
-      .replace(`<!--app-html-->`, rendered.html ?? "")
-      .replace(
-        `<!--app-css-->`,
-        `<style>${css}${rendered.css.code ?? ""}</style>`
-      );
+app.get("/about", useRoute("./index-about.html", "about", aboutTemplateHtml));
 
-    res.status(200).set({ "Content-Type": "text/html" }).end(html);
-  } catch (e) {
-    vite?.ssrFixStacktrace(e);
-    console.log(e.stack);
-    res.status(500).end(e.stack);
-  }
-});
+app.get("/spa", useRoute("./index-spa.html", "spa", spaTemplate));
 
-app.get("/spa", async (req, res) => {
-  //   const template = await fs.readFile("./index-spa.html", "utf-8");
-  //   res.status(200).set({ "Content-Type": "text/html" }).end(template);
+app.get("/spa1", useRoute("./index-spa1.html", "spa1", spaTemplate1));
 
-  try {
-    const url = req.originalUrl.replace(base, "");
-
-    let template;
-    let render;
-    if (!isProduction) {
-      // Always read fresh template in development
-      template = await fs.readFile("./index-spa.html", "utf-8");
-      template = await vite.transformIndexHtml(url, template);
-      render = (await vite.ssrLoadModule("/src/entry-server.ts")).render;
-    } else {
-      template = aboutTemplateHtml;
-      render = (await import("./dist/entry-server.js")).render;
-    }
-
-    const css = await fs.readFile("./src/app.css", "utf-8");
-    const rendered = await render({ name: "spa" });
-    const html = template
-      .replace(`<!--app-head-->`, rendered.head ?? "")
-      .replace(`<!--app-html-->`, rendered.html ?? "")
-      .replace(
-        `<!--app-css-->`,
-        `<style>${css}${rendered.css.code ?? ""}</style>`
-      );
-
-    res.status(200).set({ "Content-Type": "text/html" }).end(html);
-  } catch (e) {
-    vite?.ssrFixStacktrace(e);
-    console.log(e.stack);
-    res.status(500).end(e.stack);
-  }
-});
-
-app.get("/spa1", async (req, res) => {
-  //   const template = await fs.readFile("./index-spa.html", "utf-8");
-  //   res.status(200).set({ "Content-Type": "text/html" }).end(template);
-
-  try {
-    const url = req.originalUrl.replace(base, "");
-
-    let template;
-    let render;
-    if (!isProduction) {
-      // Always read fresh template in development
-      template = await fs.readFile("./index-spa1.html", "utf-8");
-      template = await vite.transformIndexHtml(url, template);
-      render = (await vite.ssrLoadModule("/src/entry-server.ts")).render;
-    } else {
-      template = aboutTemplateHtml;
-      render = (await import("./dist/entry-server.js")).render;
-    }
-
-    const css = await fs.readFile("./src/app.css", "utf-8");
-    const rendered = await render({ name: "spa1" });
-    const html = template
-      .replace(`<!--app-head-->`, rendered.head ?? "")
-      .replace(`<!--app-html-->`, rendered.html ?? "")
-      .replace(
-        `<!--app-css-->`,
-        `<style>${css}${rendered.css.code ?? ""}</style>`
-      );
-
-    res.status(200).set({ "Content-Type": "text/html" }).end(html);
-  } catch (e) {
-    vite?.ssrFixStacktrace(e);
-    console.log(e.stack);
-    res.status(500).end(e.stack);
-  }
-});
-
-app.get("/spa2", async (req, res) => {
-  //   const template = await fs.readFile("./index-spa.html", "utf-8");
-  //   res.status(200).set({ "Content-Type": "text/html" }).end(template);
-
-  try {
-    const url = req.originalUrl.replace(base, "");
-
-    let template;
-    let render;
-    if (!isProduction) {
-      // Always read fresh template in development
-      template = await fs.readFile("./index-spa2.html", "utf-8");
-      template = await vite.transformIndexHtml(url, template);
-      render = (await vite.ssrLoadModule("/src/entry-server.ts")).render;
-    } else {
-      template = aboutTemplateHtml;
-      render = (await import("./dist/entry-server.js")).render;
-    }
-
-    const css = await fs.readFile("./src/app.css", "utf-8");
-    const rendered = await render({ name: "spa2" });
-    const html = template
-      .replace(`<!--app-head-->`, rendered.head ?? "")
-      .replace(`<!--app-html-->`, rendered.html ?? "")
-      .replace(
-        `<!--app-css-->`,
-        `<style>${css}${rendered.css.code ?? ""}</style>`
-      );
-
-    res.status(200).set({ "Content-Type": "text/html" }).end(html);
-  } catch (e) {
-    vite?.ssrFixStacktrace(e);
-    console.log(e.stack);
-    res.status(500).end(e.stack);
-  }
-});
+app.get("/spa2", useRoute("./index-spa2.html", "spa2", spaTemplate2));
 
 // Start http server
 app.listen(port, () => {

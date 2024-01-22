@@ -7,7 +7,6 @@
 
   async function preventer(event) {
       event.preventDefault();
-      console.log(event, this.href);
       history.pushState({}, '', this.href);
 
       href = this.href;
@@ -37,6 +36,7 @@
 <a href="/spa1" on:click={preventer}>spa1</a>
 <a href="/spa2" on:click={preventer}>spa2</a>
 
+<!-- basically on SSR we render slot and then we render stuff based on click -->
 {#if currentComponent}
   <svelte:component this={currentComponent} />
 {:else}

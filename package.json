@@ -7,15 +7,13 @@
     "dev": "node server",
     "build": "npm run build:client && npm run build:server",
     "build:client": "vite build --ssrManifest --outDir dist/client",
-    "build:server": "vite build --ssr src/server/entry-server.ts --outDir dist/server",
+    "build:server": "vite build --ssr src/entry-server.ts --outDir dist/server",
     "preview": "cross-env NODE_ENV=production node server"
   },
   "dependencies": {
-    "@roxi/routify": "^3.0.0-next.209",
     "compression": "^1.7.4",
     "express": "^4.18.2",
-    "sirv": "^2.0.4",
-    "svelte-spa-router": "^4.0.1"
+    "sirv": "^2.0.4"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.0.1",

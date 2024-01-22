@@ -2,14 +2,14 @@
     import svelteLogo from './assets/svelte.svg'
     import Counter from './lib/Counter.svelte'
   
-    export let a = 'HELLO';
-    export let order = {};
+    export let a = '';
+    export let initialData = {};
   </script>
   
   <main>
     { a }
   
-    {order.quantity}
+    {initialData.random}
 
     <a href="/about">about</a>
 
