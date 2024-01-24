@@ -1,20 +1,27 @@
-import "./app.css";
+import { router, entryMap } from "./router";
+import Router from "./Router.svelte";
 
-const entryMap = {
-  index: () => import("./App.svelte"),
-  about: () => import("./App2.svelte"),
-  spa: () => import("./App3.svelte"),
-  spa1: () => import("./App4.svelte"),
-  spa2: () => import("./App5.svelte"),
-};
+export async function render(data) {
+  console.log("entry-server:", { data });
 
-export function render(data) {
-  console.log(data);
-  const App = entryMap[data.name]().then((m) => {
-    return m.default.render({
+  const entry = entryMap[data.url];
+
+  if (!entry.isSsr) {
+    return Router.render({
       ...data,
+      routes: router.routes,
+      path: data.url,
+      ssrData: data.ssrData,
     });
-  });
+  }
 
-  return App;
+  const module = await entry.component();
+
+  return Router.render({
+    ...data,
+    component: module.default,
+    routes: router.routes,
+    path: data.url,
+    ssrData: data.ssrData,
+  });
 }

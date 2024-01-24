@@ -1,8 +1,7 @@
 <script>
-  import Layout from "./layout.svelte";
-  import Page from './Page2.svelte'
+  import Nav from './nav.svelte'
 </script>
 
-<Layout>
-  <Page />
-</Layout>
+<Nav/>
+
+<div>SSR</div>

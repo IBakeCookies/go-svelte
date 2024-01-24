@@ -11,22 +11,6 @@ const templateHtml = isProduction
   ? await fs.readFile("./dist/client/index.html", "utf-8")
   : "";
 
-const aboutTemplateHtml = isProduction
-  ? await fs.readFile("./dist/client/index-about.html", "utf-8")
-  : "";
-
-const spaTemplate = isProduction
-  ? await fs.readFile("./dist/client/index-spa.html", "utf-8")
-  : "";
-
-const spaTemplate1 = isProduction
-  ? await fs.readFile("./dist/client/index-spa1.html", "utf-8")
-  : "";
-
-const spaTemplate2 = isProduction
-  ? await fs.readFile("./dist/client/index-spa2.html", "utf-8")
-  : "";
-
 const ssrManifest = isProduction
   ? await fs.readFile("./dist/client/.vite/ssr-manifest.json", "utf-8")
   : undefined;
@@ -97,7 +81,7 @@ function useRoute(templateToRead, name, prodTemplate) {
       if (!isProduction) {
         // Always read fresh template in development
         template = await fs.readFile(templateToRead, "utf-8");
-        template = await vite.transformIndexHtml(url, template);
+        template = await vite.transformIndexHtml(req.originalUrl, template);
         render = (await vite.ssrLoadModule("./src/entry-server.ts")).render;
       } else {
         template = prodTemplate;
@@ -108,25 +92,29 @@ function useRoute(templateToRead, name, prodTemplate) {
 
       // const order = req.body.order
 
-      const initialData = {
+      const ssrData = {
         random: Math.random() * 100,
       };
 
       // const rendered = await render(url, ssrManifest);
-      const rendered = await render({ initialData, name });
+      const rendered = await render({
+        ssrData,
+        name,
+        url: req.originalUrl,
+      });
 
       const html = template
         .replace(`<!--app-head-->`, rendered.head ?? "")
         .replace(`<!--app-html-->`, rendered.html ?? "")
         .replace(
           `<!--app-css-->`,
-          `<style>${cache.css}${rendered.css.code ?? ""}</style>`
+          `<style>${cache.css}${rendered.css?.code ?? ""}</style>`
         )
         .replace(
           `<!--app-script-->`,
           `
           <script>
-            window.__initialData__ = ${JSON.stringify(initialData)}
+            window.__ssrData__ = ${JSON.stringify(ssrData)}
           </script>
         `
         );
@@ -142,13 +130,13 @@ function useRoute(templateToRead, name, prodTemplate) {
 
 app.get("/", useRoute("./index.html", "index", templateHtml));
 
-app.get("/about", useRoute("./index-about.html", "about", aboutTemplateHtml));
+app.get("/about", useRoute("./index.html", "about", templateHtml));
 
-app.get("/spa", useRoute("./index-spa.html", "spa", spaTemplate));
+app.get("/spa", useRoute("./index.html", "spa", templateHtml));
 
-app.get("/spa1", useRoute("./index-spa1.html", "spa1", spaTemplate1));
+app.get("/spa1", useRoute("./index.html", "spa1", templateHtml));
 
-app.get("/spa2", useRoute("./index-spa2.html", "spa2", spaTemplate2));
+app.get("/ssr", useRoute("./index.html", "ssr", templateHtml));
 
 // Start http server
 app.listen(port, () => {

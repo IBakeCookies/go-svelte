@@ -1,10 +1,19 @@
-import "./app.css";
-import App from "./App.svelte";
+import { router, entryMap } from "./router";
+import Router from "./Router.svelte";
 
-new App({
-  target: document.getElementById("app"),
-  hydrate: true,
-  props: {
-    initialData: window.__initialData__,
-  },
-});
+async function mount() {
+  const module = await entryMap[window.location.pathname].component();
+
+  new Router({
+    target: document.getElementById("app"),
+    hydrate: true,
+    props: {
+      routes: router.routes,
+      path: window.location.pathname,
+      component: module.default,
+      ssrData: window.__ssrData__,
+    },
+  });
+}
+
+mount();
