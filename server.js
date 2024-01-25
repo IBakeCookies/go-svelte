@@ -37,8 +37,6 @@ if (!isProduction) {
   app.use(base, sirv("./dist/client", { extensions: [] }));
 }
 
-// Serve HTML
-
 const cache = {
   html: "",
   css: "",

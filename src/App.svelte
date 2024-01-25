@@ -10,8 +10,11 @@
 
 <Nav/>
 
+<div>
+  Route props {routeProps?.test}
+</div>
 
-Route props {routeProps.test}
+
 
 <main>
   <div>a: { a }</div>

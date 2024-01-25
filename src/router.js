@@ -8,6 +8,19 @@ export const router = {
       props: {
         test: 123,
       },
+      // preload: async () => {
+      //   const res = await fetch("https://catfact.ninja/fact");
+      //   const data = await res.json();
+
+      //   return data;
+      // },
+      // guard: (ssrData) => {
+      //   if (ssrData.random > 50) {
+      //     return true;
+      //   }
+
+      //   return false;
+      // },
     },
     {
       path: "/about",
@@ -19,28 +32,25 @@ export const router = {
       path: "/spa",
       component: () => import("./App3.svelte"),
       isSpa: true,
-      isSsr: true,
+      isSsr: false,
     },
     {
       path: "/spa1",
       component: () => import("./App4.svelte"),
-      isSsr: false,
       isSpa: true,
+      isSsr: false,
     },
     {
       path: "/ssr",
       component: () => import("./App5.svelte"),
-      isSsr: true,
       isSpa: false,
+      isSsr: true,
     },
   ],
 };
 
 export const entryMap = router.routes.reduce((result, route) => {
-  result[route.path] = {
-    component: route.component,
-    isSsr: route.isSsr,
-  };
+  result[route.path] = route;
 
   return result;
 }, {});

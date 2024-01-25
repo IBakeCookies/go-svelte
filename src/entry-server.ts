@@ -5,6 +5,15 @@ export async function render(data) {
   console.log("entry-server:", { data });
 
   const entry = entryMap[data.url];
+  let isGuardPassed = true;
+
+  if (entry.guard) {
+    isGuardPassed = entry.guard(data.ssrData);
+  }
+
+  if (!isGuardPassed) {
+    return {};
+  }
 
   if (!entry.isSsr) {
     return Router.render({

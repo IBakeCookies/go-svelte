@@ -2,7 +2,19 @@ import { router, entryMap } from "./router";
 import Router from "./Router.svelte";
 
 async function mount() {
-  const module = await entryMap[window.location.pathname].component();
+  const entry = entryMap[window.location.pathname];
+  const ssrData = window.__ssrData__;
+  let isGuardPassed = true;
+
+  if (entry.guard) {
+    isGuardPassed = entry.guard(ssrData);
+  }
+
+  if (!isGuardPassed) {
+    return;
+  }
+
+  const module = await entry.component();
 
   new Router({
     target: document.getElementById("app"),
@@ -11,7 +23,7 @@ async function mount() {
       routes: router.routes,
       path: window.location.pathname,
       component: module.default,
-      ssrData: window.__ssrData__,
+      ssrData,
     },
   });
 }

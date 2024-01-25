@@ -5,6 +5,7 @@ export let path = '';
 export let routes = [];
 export let component;
 export let ssrData = {};
+export let preload = {};
 
 const { 
     path: routerPath,
@@ -17,6 +18,13 @@ routerStore.routes.set(routes);
 
 $: currentRoute = routes.find((route) => route.path === $routerPath);
 
+// $: {
+//     (async() => {
+//         const preloadData = currentRoute?.preload && (await currentRoute?.preload());
+//         preload = preloadData;
+//     })();
+// }
+
 $: {
     (async () =>{
         if(!currentRoute) {
@@ -26,20 +34,18 @@ $: {
         if(typeof currentRoute.component === 'function') {
             const module = await currentRoute.component();
             component = module.default;
-            routerStore.component.set(component);
+            // causes infinite loop?????
+            // routerStore.component.set(component);
 
             return;
         } 
 
         component = currentRoute.component
-        routerStore.component.set(component);      
+        // routerStore.component.set(component);      
     })()
 }
 
 </script>
 
-{#if $routerComponent}
-    {#key $routerPath}
-        <svelte:component this={$routerComponent} {ssrData} routeProps={currentRoute.props} />
-    {/key}
-{/if}
+
+<svelte:component this={component} {ssrData} {preload} routeProps={currentRoute.props} />
