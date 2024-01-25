@@ -1,11 +1,20 @@
 <script lang="ts">
-import { routerComponentStore } from './routerStore';
+import { component, path, createRouterContext } from './routerStore';
+import { createSharedContext }  from './sharedContext';
 
-export let serverComponent = null;
+export let ctx: SharedContext = {} as SharedContext;
 
-$: component = serverComponent || $routerComponentStore
+interface SharedContext {
+    data: unknown;
+    path: string;
+}
+
+createSharedContext(ctx.data);
+createRouterContext();
+
+$path = ctx.path;
 </script>
 
-{#if component}
-    <svelte:component this={component} />
+{#if $component}
+    <svelte:component this={$component} />
 {/if}

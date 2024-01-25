@@ -90,14 +90,17 @@ function useRoute(templateToRead, prodTemplate) {
 
       // const order = req.body.order
 
-      const ssrData = {
-        random: Math.random() * 100,
+      const ctx = {
+        data: {
+          firstname: "John",
+          lastname: "Doe",
+        },
+        path: req.originalUrl,
       };
 
       // const rendered = await render(url, ssrManifest);
       const rendered = await render({
-        ssrData,
-        name,
+        ctx,
         url: req.originalUrl,
       });
 
@@ -112,7 +115,7 @@ function useRoute(templateToRead, prodTemplate) {
           `<!--app-script-->`,
           `
           <script>
-            window.__ssrData__ = ${JSON.stringify(ssrData)}
+            window.__ctx__ = ${JSON.stringify(ctx)}
           </script>
         `
         );

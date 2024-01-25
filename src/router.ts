@@ -1,5 +1,5 @@
 import { routes } from "./routes";
-import { routerComponentStore } from "./routerStore";
+import { component, path as routerPath } from "./routerStore";
 
 interface Route {
   path: string;
@@ -12,7 +12,7 @@ interface Route {
 export function createRouter(routes: Route[]) {
   const isServer = typeof window === "undefined";
 
-  if (!isServer) {
+  function listenToPopState() {
     addEventListener("popstate", async function (e: PopStateEvent) {
       const target = e.currentTarget;
 
@@ -32,6 +32,10 @@ export function createRouter(routes: Route[]) {
     });
   }
 
+  if (!isServer) {
+    listenToPopState();
+  }
+
   async function push(path: string) {
     const targetRoute = routes.find((route) => route.path === path);
 
@@ -42,8 +46,7 @@ export function createRouter(routes: Route[]) {
     if (isServer && targetRoute.isSsr) {
       if (typeof targetRoute.component === "function") {
         const module = await targetRoute.component();
-
-        routerComponentStore.set(module.default);
+        component.set(module.default);
       }
 
       return;
@@ -57,8 +60,7 @@ export function createRouter(routes: Route[]) {
       if (currentRoute?.path === targetRoute.path) {
         if (typeof targetRoute.component === "function") {
           const module = await targetRoute.component();
-
-          routerComponentStore.set(module.default);
+          component.set(module.default);
         }
 
         return;
@@ -71,10 +73,11 @@ export function createRouter(routes: Route[]) {
 
       window.history.pushState({}, "", path);
 
+      routerPath.set(path);
+
       if (typeof targetRoute.component === "function") {
         const module = await targetRoute.component();
-
-        routerComponentStore.set(module.default);
+        component.set(module.default);
       }
     }
   }

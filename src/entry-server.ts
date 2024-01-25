@@ -1,28 +1,17 @@
-import { random } from "./ssrStore";
 import { router } from "./router";
 import Router from "./Router.svelte";
+import { component, path } from "./routerStore";
 
-function hydrateStore(data) {
-  random.set(data);
-}
+export async function render({ ctx, url }) {
+  console.log("entry-server:", ctx);
 
-export async function render(data) {
-  console.log("entry-server:", { data });
+  // avoid data leak
+  component.set(null);
+  path.set("");
 
-  const targetRoute = router.routes.find((route) => route.path === data.url);
-
-  hydrateStore(data.ssrData.random);
-
-  // await router.push(data.url);
-
-  let module = null;
-
-  if (targetRoute.isSsr) {
-    module = await targetRoute.component();
-    module = module.default;
-  }
+  await router.push(url);
 
   return Router.render({
-    serverComponent: module,
+    ctx,
   });
 }

@@ -2,21 +2,23 @@
   import svelteLogo from './assets/svelte.svg'
   import Counter from './lib/Counter.svelte'
   import Nav from './nav.svelte'
-  import { random } from "./ssrStore";
+  import { getContext } from 'svelte';
+  // export let routeProps = {};
 
-  export let a = '';
-  export let routeProps = {};
+  const { fullname } = getContext('shared');
 </script>
 
 <Nav/>
 
-<div>
+{$fullname}
+
+<!-- <div>
   Route props {routeProps?.test}
-</div>
+</div> -->
 
 <main>
-  <div>a: { a }</div>
-  <div>{$random}</div>
+  <!-- <div>{ctx.data.firstname}</div>
+  <div>{ctx.data.lastname}</div> -->
 
   HOME
   

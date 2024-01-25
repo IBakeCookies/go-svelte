@@ -1,6 +1,9 @@
 <script lang="ts">
   import { router } from './router';
-  
+  import { getContext } from 'svelte';
+
+  const { path } = getContext('router');
+
   function push(event) {
     event.preventDefault();
 
@@ -10,7 +13,7 @@
   }
 </script>
 
-<!-- <h1>You are on {$path}</h1> -->
+<h1>You are on {$path}</h1>
 
 <div><a href='/' on:click={push}>home</a></div>
 <div><a href='/about' on:click={push}>about</a></div>
