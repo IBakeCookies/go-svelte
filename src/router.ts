@@ -1,5 +1,5 @@
 import { routes } from "./routes";
-import { routerStore } from "./routerStore";
+import { routerComponentStore } from "./routerStore";
 
 interface Route {
   path: string;
@@ -10,7 +10,27 @@ interface Route {
 }
 
 export function createRouter(routes: Route[]) {
-  const { component } = routerStore;
+  const isServer = typeof window === "undefined";
+
+  if (!isServer) {
+    addEventListener("popstate", async function (e: PopStateEvent) {
+      const target = e.currentTarget;
+
+      if (!target) {
+        return;
+      }
+
+      const location = target.location;
+
+      if (!location) {
+        return;
+      }
+
+      e.preventDefault();
+
+      await push(location.pathname);
+    });
+  }
 
   async function push(path: string) {
     const targetRoute = routes.find((route) => route.path === path);
@@ -19,7 +39,17 @@ export function createRouter(routes: Route[]) {
       throw new Error(`Route ${path} not found`);
     }
 
-    if (typeof window !== "undefined") {
+    if (isServer && targetRoute.isSsr) {
+      if (typeof targetRoute.component === "function") {
+        const module = await targetRoute.component();
+
+        routerComponentStore.set(module.default);
+      }
+
+      return;
+    }
+
+    if (!isServer) {
       const currentRoute = routes.find(
         (route) => route.path === window.location.pathname
       );
@@ -28,7 +58,7 @@ export function createRouter(routes: Route[]) {
         if (typeof targetRoute.component === "function") {
           const module = await targetRoute.component();
 
-          component.set(module.default);
+          routerComponentStore.set(module.default);
         }
 
         return;
@@ -40,16 +70,17 @@ export function createRouter(routes: Route[]) {
       }
 
       window.history.pushState({}, "", path);
-    }
 
-    if (typeof targetRoute.component === "function") {
-      const module = await targetRoute.component();
+      if (typeof targetRoute.component === "function") {
+        const module = await targetRoute.component();
 
-      component.set(module.default);
+        routerComponentStore.set(module.default);
+      }
     }
   }
 
   return {
+    routes,
     push,
   };
 }

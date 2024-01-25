@@ -45,4 +45,10 @@ export const routes = [
     isSpa: false,
     isSsr: true,
   },
+  {
+    path: "/ssr1",
+    component: () => import("./App5.svelte"),
+    isSpa: false,
+    isSsr: true,
+  },
 ];

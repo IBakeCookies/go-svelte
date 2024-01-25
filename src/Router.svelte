@@ -1,11 +1,11 @@
 <script lang="ts">
-import { routerStore } from './routerStore';
+import { routerComponentStore } from './routerStore';
 
-export let ssrData = {};
+export let serverComponent = null;
 
-const { component } = routerStore;
+$: component = serverComponent || $routerComponentStore
 </script>
 
-{#if $component}
-    <svelte:component this={$component} />
+{#if component}
+    <svelte:component this={component} />
 {/if}

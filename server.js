@@ -68,7 +68,7 @@ async function readCss() {
   });
 */
 
-function useRoute(templateToRead, name, prodTemplate) {
+function useRoute(templateToRead, prodTemplate) {
   return async (req, res) => {
     try {
       const url = req.originalUrl.replace(base, "");
@@ -126,15 +126,7 @@ function useRoute(templateToRead, name, prodTemplate) {
   };
 }
 
-app.get("/", useRoute("./index.html", "index", templateHtml));
-
-app.get("/about", useRoute("./index.html", "about", templateHtml));
-
-app.get("/spa", useRoute("./index.html", "spa", templateHtml));
-
-app.get("/spa1", useRoute("./index.html", "spa1", templateHtml));
-
-app.get("/ssr", useRoute("./index.html", "ssr", templateHtml));
+app.get("*", useRoute("./index.html", templateHtml));
 
 // Start http server
 app.listen(port, () => {

@@ -17,3 +17,4 @@
 <div><a href='/spa' on:click={push}>spa</a></div>
 <div><a href='/spa1' on:click={push}>spa1</a></div>
 <div><a href='/ssr' on:click={push}>ssr</a></div>
+<div><a href='/ssr1' on:click={push}>ssr1</a></div>
