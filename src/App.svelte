@@ -2,9 +2,9 @@
   import svelteLogo from './assets/svelte.svg'
   import Counter from './lib/Counter.svelte'
   import Nav from './nav.svelte'
+  import { random } from "./ssrStore";
 
   export let a = '';
-  export let ssrData = {};
   export let routeProps = {};
 </script>
 
@@ -14,11 +14,9 @@
   Route props {routeProps?.test}
 </div>
 
-
-
 <main>
   <div>a: { a }</div>
-  <div>{ssrData.random}</div>
+  <div>{$random}</div>
 
   HOME
   

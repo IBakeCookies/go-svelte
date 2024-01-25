@@ -1,30 +1,29 @@
-import { router, entryMap } from "./router";
+import { router } from "./router";
 import Router from "./Router.svelte";
+import { random } from "./ssrStore";
 
 async function mount() {
-  const entry = entryMap[window.location.pathname];
-  const ssrData = window.__ssrData__;
-  let isGuardPassed = true;
+  // const entry = router.entryMap[window.location.pathname];
+  // const ssrData = window.__ssrData__;
+  // let isGuardPassed = true;
 
-  if (entry.guard) {
-    isGuardPassed = entry.guard(ssrData);
-  }
+  // if (entry.guard) {
+  //   isGuardPassed = entry.guard(ssrData);
+  // }
 
-  if (!isGuardPassed) {
-    return;
-  }
+  // if (!isGuardPassed) {
+  //   return;
+  // }
 
-  const module = await entry.component();
+  // const module = await entry.component();
+
+  random.set(window.__ssrData__.random);
+
+  await router.push(window.location.pathname);
 
   new Router({
     target: document.getElementById("app"),
     hydrate: true,
-    props: {
-      routes: router.routes,
-      path: window.location.pathname,
-      component: module.default,
-      ssrData,
-    },
   });
 }
 

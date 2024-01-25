@@ -102,11 +102,11 @@ function useRoute(templateToRead, name, prodTemplate) {
       });
 
       const html = template
-        .replace(`<!--app-head-->`, rendered.head ?? "")
-        .replace(`<!--app-html-->`, rendered.html ?? "")
+        .replace(`<!--app-head-->`, rendered?.head ?? "")
+        .replace(`<!--app-html-->`, rendered?.html ?? "")
         .replace(
           `<!--app-css-->`,
-          `<style>${cache.css}${rendered.css?.code ?? ""}</style>`
+          `<style>${cache.css}${rendered?.css?.code ?? ""}</style>`
         )
         .replace(
           `<!--app-script-->`,
