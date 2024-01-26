@@ -1,11 +1,13 @@
+import type { Route } from './router.svelte';
+
 export const routes = [
     {
         path: '/',
         component: () => import('./App.svelte'),
         isSpa: true,
         isSsr: true,
-        props: {
-            test: 123,
+        beforeEnter: async () => {
+            console.log('[before enter home page]');
         },
         // preload: async () => {
         //   const res = await fetch("https://catfact.ninja/fact");
@@ -50,5 +52,17 @@ export const routes = [
         component: () => import('./App6.svelte'),
         isSpa: false,
         isSsr: true,
+    },
+    {
+        path: '/slug/id',
+        component: () => import('./App7.svelte'),
+        isSpa: true,
+        isSsr: true,
+        props: (route: Route) => {
+            return {
+                id: route.params.id,
+                test: 123,
+            };
+        },
     },
 ];

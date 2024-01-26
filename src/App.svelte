@@ -8,11 +8,15 @@ import Nav from './nav.svelte'
 // export let routeProps = {};
 // console.log(routeProps)
 
+// export let props = {};
+
 const { firstname, fullname } = getSharedContext('user');
 
 setTimeout(() => {
     $firstname = 'JANE';
 }, 1000);
+
+// console.log('[App] props', props);
 </script>
 
 <Nav/>

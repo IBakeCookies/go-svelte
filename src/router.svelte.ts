@@ -1,12 +1,13 @@
 import { routes } from './routes';
-import { type Writable, writable } from 'svelte/store';
+import type { SvelteComponent } from 'svelte';
 
-interface Route {
+export interface Route {
     path: string;
     component: () => Promise<any>;
     isSpa: boolean;
     isSsr: boolean;
     props?: any;
+    beforeEnter?: () => Promise<void>;
 }
 
 function wait(milliseconds: number = 0): Promise<void> {
@@ -15,75 +16,72 @@ function wait(milliseconds: number = 0): Promise<void> {
     });
 }
 
-interface Router {
-    path: Writable<string>;
+interface RouterState {
+    path: string;
     push: (path: string) => Promise<void>;
-    pushSsr: (path: string) => Promise<void>;
     routes: Route[];
-    component: Writable<any>;
-    isLoadingComponent: Writable<boolean>;
+    component: null | SvelteComponent;
+    isLoadingComponent: boolean;
+    currentRoute: null | Route;
 }
 
-export function createRouter(routes: Route[]): Router {
-    const isServer = typeof window === 'undefined';
+export function extractSlug(path: string): string {
+    return path.split('/').pop() || '';
+}
 
-    async function listenToPopState() {
-        addEventListener('popstate', async function (e: PopStateEvent) {
-            const target = e.currentTarget;
+export function findRoute(routes: Route[], path: string) {
+    return routes.find((route) => {
+        const slug = extractSlug(route.path);
+        const slugValue = extractSlug(path);
 
-            if (!target) {
-                return;
-            }
+        return route.path.replace(slug, slugValue);
+    });
+}
 
-            // @ts-ignore
-            const location = target.location;
+async function listenToPopState(push: RouterState['push']) {
+    window.addEventListener('popstate', async function (e: PopStateEvent) {
+        const target = e.currentTarget;
 
-            if (!location) {
-                return;
-            }
-
-            e.preventDefault();
-
-            return push(location.pathname);
-        });
-    }
-
-    if (!isServer) {
-        listenToPopState();
-    }
-
-    let pathStore = writable('');
-    let componentStore = writable(null);
-    let isLoadingComponent = writable(false);
-
-    async function importComponent(route: Route): Promise<void> {
-        if (typeof route.component === 'function') {
-            const module = await route.component();
-
-            componentStore.set(module.default);
-
+        if (!target) {
             return;
         }
 
-        componentStore.set(route.component);
-    }
+        // @ts-ignore
+        const location = target.location;
 
-    async function pushSsr(path: string) {
-        const targetRoute = routes.find((route) => route.path === path);
-
-        if (!targetRoute) {
-            throw new Error(`Route ${path} not found`);
-        }
-
-        if (!targetRoute.isSsr) {
-            // avoid data leak
-            componentStore.set(null);
-
+        if (!location) {
             return;
         }
 
-        return importComponent(targetRoute);
+        e.preventDefault();
+
+        return push(location.pathname);
+    });
+}
+
+async function importComponent(route: Route): Promise<SvelteComponent> {
+    if (typeof route.component === 'function') {
+        const module = await route.component();
+
+        return module.default;
     }
+
+    return route.component;
+}
+
+const isServer = import.meta.env.SSR;
+
+export function createRouter(routes: Route[]): RouterState {
+    !isServer && listenToPopState(push);
+
+    const state = $state<RouterState>({
+        routes,
+        push,
+        path: '',
+        component: null,
+        isLoadingComponent: false,
+        currentRoute: null,
+    });
 
     async function push(path: string) {
         const targetRoute = routes.find((route) => route.path === path);
@@ -92,16 +90,20 @@ export function createRouter(routes: Route[]): Router {
             throw new Error(`Route ${path} not found`);
         }
 
-        // if (isServer) {
-        //   if (!targetRoute.isSsr) {
-        //     // avoid data leak
-        //     componentStore.set(null);
+        if (isServer) {
+            if (!targetRoute.isSsr) {
+                // avoid data leak
+                state.component = null;
 
-        //     return;
-        //   }
+                return;
+            }
 
-        //   return importComponent(targetRoute);
-        // }
+            const component = await importComponent(targetRoute);
+
+            state.component = component;
+
+            return;
+        }
 
         const currentRoute = routes.find((route) => route.path === window.location.pathname);
 
@@ -111,12 +113,16 @@ export function createRouter(routes: Route[]): Router {
 
         // in pop case current and target will be the same but its wrong: fix it
         if (currentRoute.path === targetRoute.path) {
-            isLoadingComponent.set(true);
+            state.isLoadingComponent = true;
 
-            await wait(500);
-            await importComponent(targetRoute);
+            targetRoute.beforeEnter && (await targetRoute.beforeEnter());
 
-            isLoadingComponent.set(false);
+            await wait(250);
+
+            const component = await importComponent(targetRoute);
+
+            state.component = component;
+            state.isLoadingComponent = false;
 
             return;
         }
@@ -127,25 +133,22 @@ export function createRouter(routes: Route[]): Router {
             return;
         }
 
-        isLoadingComponent.set(true);
+        state.isLoadingComponent = true;
 
-        await wait(500);
-        await importComponent(targetRoute);
+        targetRoute.beforeEnter && (await targetRoute.beforeEnter());
 
-        isLoadingComponent.set(false);
-        pathStore.set(path);
+        await wait(250);
+
+        const component = await importComponent(targetRoute);
+
+        state.component = component;
+        state.isLoadingComponent = false;
+        state.path = path;
 
         window.history.pushState({}, '', path);
     }
 
-    return {
-        routes,
-        push,
-        pushSsr,
-        path: pathStore,
-        component: componentStore,
-        isLoadingComponent,
-    };
+    return state;
 }
 
 export const router = createRouter(routes);
