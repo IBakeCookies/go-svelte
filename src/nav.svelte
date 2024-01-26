@@ -1,8 +1,8 @@
 <script lang="ts">
   import { router } from './router';
-  import { getContext } from 'svelte';
+  import { getRouterContext } from './routerStore';
 
-  const { path } = getContext('router');
+  const { path } = getRouterContext();
 
   function push(event) {
     event.preventDefault();
@@ -15,9 +15,19 @@
 
 <h1>You are on {$path}</h1>
 
-<div><a href='/' on:click={push}>home</a></div>
-<div><a href='/about' on:click={push}>about</a></div>
-<div><a href='/spa' on:click={push}>spa</a></div>
-<div><a href='/spa1' on:click={push}>spa1</a></div>
-<div><a href='/ssr' on:click={push}>ssr</a></div>
-<div><a href='/ssr1' on:click={push}>ssr1</a></div>
+<div class="flex">
+  <a href='/' on:click={push}>home</a>
+  <a href='/about' on:click={push}>about</a>
+  <a href='/spa' on:click={push}>spa</a>
+  <a href='/spa1' on:click={push}>spa1</a>
+  <a href='/ssr' on:click={push}>ssr</a>
+  <a href='/ssr1' on:click={push}>ssr1</a>
+</div>
+
+<style>
+  .flex {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+</style>

@@ -9,6 +9,13 @@ interface Route {
   props?: any;
 }
 
+async function importComponent(route: Route): Promise<void> {
+  if (typeof route.component === "function") {
+    const module = await route.component();
+    component.set(module.default);
+  }
+}
+
 export function createRouter(routes: Route[]) {
   const isServer = typeof window === "undefined";
 
@@ -43,43 +50,41 @@ export function createRouter(routes: Route[]) {
       throw new Error(`Route ${path} not found`);
     }
 
-    if (isServer && targetRoute.isSsr) {
-      if (typeof targetRoute.component === "function") {
-        const module = await targetRoute.component();
-        component.set(module.default);
+    if (isServer) {
+      if (!targetRoute.isSsr) {
+        // avoid data leak
+        component.set(null);
+
+        return;
       }
+
+      return importComponent(targetRoute);
+    }
+
+    const currentRoute = routes.find(
+      (route) => route.path === window.location.pathname
+    );
+
+    if (!currentRoute) {
+      return;
+    }
+
+    // in pop case current and target will be the same but its wrong: fix it
+    if (currentRoute.path === targetRoute.path) {
+      return importComponent(targetRoute);
+    }
+
+    if (!targetRoute.isSpa) {
+      window.location.href = path;
 
       return;
     }
 
-    if (!isServer) {
-      const currentRoute = routes.find(
-        (route) => route.path === window.location.pathname
-      );
+    window.history.pushState({}, "", path);
 
-      if (currentRoute?.path === targetRoute.path) {
-        if (typeof targetRoute.component === "function") {
-          const module = await targetRoute.component();
-          component.set(module.default);
-        }
+    routerPath.set(path);
 
-        return;
-      }
-
-      if (!targetRoute.isSpa) {
-        window.location.href = path;
-        return;
-      }
-
-      window.history.pushState({}, "", path);
-
-      routerPath.set(path);
-
-      if (typeof targetRoute.component === "function") {
-        const module = await targetRoute.component();
-        component.set(module.default);
-      }
-    }
+    return importComponent(targetRoute);
   }
 
   return {

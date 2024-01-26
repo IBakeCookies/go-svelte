@@ -47,7 +47,7 @@ export const routes = [
   },
   {
     path: "/ssr1",
-    component: () => import("./App5.svelte"),
+    component: () => import("./App6.svelte"),
     isSpa: false,
     isSsr: true,
   },

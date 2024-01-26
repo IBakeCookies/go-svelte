@@ -1,17 +1,14 @@
+import { type RenderOutput, render as svelteRenderer } from "svelte/server";
 import { router } from "./router";
 import Router from "./Router.svelte";
-import { component, path } from "./routerStore";
+import { type Context } from "./sharedContext.svelte";
 
-export async function render({ ctx, url }) {
-  console.log("entry-server:", ctx);
+export async function render(ctx: Context): Promise<RenderOutput> {
+  await router.push(ctx.path);
 
-  // avoid data leak
-  component.set(null);
-  path.set("");
-
-  await router.push(url);
-
-  return Router.render({
-    ctx,
+  return svelteRenderer(Router, {
+    props: {
+      ctx,
+    },
   });
 }

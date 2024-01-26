@@ -1,13 +1,10 @@
 <script lang="ts">
 import { component, path, createRouterContext } from './routerStore';
-import { createSharedContext }  from './sharedContext';
+import { type Context, createSharedContext }  from './sharedContext.svelte';
 
-export let ctx: SharedContext = {} as SharedContext;
+export let ctx: Context = {} as Context;
 
-interface SharedContext {
-    data: unknown;
-    path: string;
-}
+// let { ctx } = $props<SharedContext>(); 
 
 createSharedContext(ctx.data);
 createRouterContext();

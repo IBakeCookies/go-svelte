@@ -92,17 +92,16 @@ function useRoute(templateToRead, prodTemplate) {
 
       const ctx = {
         data: {
-          firstname: "John",
-          lastname: "Doe",
+          user: {
+            firstname: "John",
+            lastname: "Doe",
+          },
         },
         path: req.originalUrl,
       };
 
       // const rendered = await render(url, ssrManifest);
-      const rendered = await render({
-        ctx,
-        url: req.originalUrl,
-      });
+      const rendered = await render(ctx);
 
       const html = template
         .replace(`<!--app-head-->`, rendered?.head ?? "")

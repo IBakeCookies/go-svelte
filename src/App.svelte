@@ -1,26 +1,22 @@
 <script lang="ts">
+  import { getSharedContext } from './sharedContext.svelte'
   import svelteLogo from './assets/svelte.svg'
   import Counter from './lib/Counter.svelte'
   import Nav from './nav.svelte'
-  import { getContext } from 'svelte';
+  
+  // add ability to pass props to route components
   // export let routeProps = {};
+  // console.log(routeProps)
 
-  const { fullname } = getContext('shared');
+  const { fullname } = getSharedContext('user');
 </script>
 
 <Nav/>
 
-{$fullname}
-
-<!-- <div>
-  Route props {routeProps?.test}
-</div> -->
-
 <main>
-  <!-- <div>{ctx.data.firstname}</div>
-  <div>{ctx.data.lastname}</div> -->
+  <div>shared context: {$fullname}</div>
 
-  HOME
+  <h2>HOME PAGE</h2>
   
   <div class="card">
     <Counter />
