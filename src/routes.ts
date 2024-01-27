@@ -9,19 +9,6 @@ export const routes = [
         beforeEnter: async () => {
             console.log('[before enter home page]');
         },
-        // preload: async () => {
-        //   const res = await fetch("https://catfact.ninja/fact");
-        //   const data = await res.json();
-
-        //   return data;
-        // },
-        // guard: (ssrData) => {
-        //   if (ssrData.random > 50) {
-        //     return true;
-        //   }
-
-        //   return false;
-        // },
     },
     {
         path: '/about',
@@ -54,7 +41,7 @@ export const routes = [
         isSsr: true,
     },
     {
-        path: '/slug/id',
+        path: '/slug/:id',
         component: () => import('./App7.svelte'),
         isSpa: true,
         isSsr: true,

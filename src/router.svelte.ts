@@ -10,6 +10,12 @@ export interface Route {
     beforeEnter?: () => Promise<void>;
 }
 
+interface RouteEnhanced extends Route {
+    params?: Record<string, string>;
+}
+
+const isServer = import.meta.env.SSR;
+
 function wait(milliseconds: number = 0): Promise<void> {
     return new Promise((resolve) => {
         setTimeout(() => resolve(), milliseconds);
@@ -25,17 +31,35 @@ interface RouterState {
     currentRoute: null | Route;
 }
 
-export function extractSlug(path: string): string {
-    return path.split('/').pop() || '';
-}
+// @todo review code from copilot
+function findRouteAndExtractParams(routes: Route[], path: string): RouteEnhanced | void {
+    for (const route of routes) {
+        const routeParts = route.path.split('/');
+        const pathParts = path.split('/');
 
-export function findRoute(routes: Route[], path: string) {
-    return routes.find((route) => {
-        const slug = extractSlug(route.path);
-        const slugValue = extractSlug(path);
+        if (routeParts.length !== pathParts.length) {
+            continue;
+        }
 
-        return route.path.replace(slug, slugValue);
-    });
+        let params = {};
+        let isMatch = true;
+
+        for (let i = 0; i < routeParts.length; i++) {
+            if (routeParts[i].startsWith(':')) {
+                params[routeParts[i].substring(1)] = pathParts[i];
+            } else if (routeParts[i] !== pathParts[i]) {
+                isMatch = false;
+                break;
+            }
+        }
+
+        if (isMatch) {
+            return {
+                params,
+                ...route,
+            };
+        }
+    }
 }
 
 async function listenToPopState(push: RouterState['push']) {
@@ -69,8 +93,6 @@ async function importComponent(route: Route): Promise<SvelteComponent> {
     return route.component;
 }
 
-const isServer = import.meta.env.SSR;
-
 export function createRouter(routes: Route[]): RouterState {
     !isServer && listenToPopState(push);
 
@@ -84,11 +106,13 @@ export function createRouter(routes: Route[]): RouterState {
     });
 
     async function push(path: string) {
-        const targetRoute = routes.find((route) => route.path === path);
+        const targetRoute = findRouteAndExtractParams(routes, path);
 
         if (!targetRoute) {
             throw new Error(`Route ${path} not found`);
         }
+
+        state.currentRoute = targetRoute;
 
         if (isServer) {
             if (!targetRoute.isSsr) {
@@ -105,7 +129,7 @@ export function createRouter(routes: Route[]): RouterState {
             return;
         }
 
-        const currentRoute = routes.find((route) => route.path === window.location.pathname);
+        const currentRoute = findRouteAndExtractParams(routes, window.location.pathname);
 
         if (!currentRoute) {
             return;
