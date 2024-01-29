@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + Svelte + TS</title>
-  </head>
-  <body>
-    {{.NodeResponse}}
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go and Node Integration</title>
+      <script type="module" crossorigin src="/assets/index-hPJJBdSI.js"></script>
+      <link rel="stylesheet" crossorigin href="/assets/index-H-fpGIl1.css">
+</head>
+<body>
+      <div id="app">
+        <!-- Insert Node response here -->
+        {{.NodeResponse}}
+    </div>
+
+    <!-- Inject context data as a JavaScript variable -->
+    <script>
+        window.__ctx__ = {{.ContextJSON}};
+    </script>
+</body>
 </html>

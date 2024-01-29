@@ -1,28 +1,23 @@
 <script lang="ts">
-import { getSharedContext } from './sharedContext.svelte'
 import svelteLogo from './assets/svelte.svg'
 import Counter from './lib/Counter.svelte'
 import Nav from './nav.svelte'
 
-// add ability to pass props to route components
-// export let routeProps = {};
-// console.log(routeProps)
+let fact = $state('');
 
-// export let props = {};
+// $effect(async () => {
+//     const response = await fetch('https://catfact.ninja/fact');
+//     const data = await response.json();
 
-const { firstname, fullname } = getSharedContext('user');
+//     fact = data.fact;
+// });
 
-setTimeout(() => {
-    $firstname = 'JANE';
-}, 1000);
-
-// console.log('[App] props', props);
 </script>
 
 <Nav/>
 
 <main>
-    <div>shared context: {$fullname}</div>
+    {fact}
 
     <h2>HOME PAGE</h2>
 
@@ -31,9 +26,9 @@ setTimeout(() => {
     </div>
 
     <div>
-        <a href="https://vitejs.dev" target="_blank" rel="noreferrer"> 
-            <img src="/vite.svg" class="logo" alt="Vite Logo" />
-        </a>
+        <!-- <a href="https://vitejs.dev" target="_blank" rel="noreferrer"> 
+            <img src="/assets/vite.svg" class="logo" alt="Vite Logo" />
+        </a> -->
 
         <a href="https://svelte.dev" target="_blank" rel="noreferrer"> 
             <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />

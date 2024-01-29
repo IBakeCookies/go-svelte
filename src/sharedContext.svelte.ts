@@ -1,9 +1,8 @@
 import { setContext, getContext } from 'svelte';
-import { type Writable, type Readable, writable, derived } from 'svelte/store';
 
 export interface Context {
     data: {
-        user: User;
+        user?: User;
     };
 
     path: string;
@@ -17,51 +16,36 @@ interface User {
 type UserKey = keyof User;
 
 export interface SharedContextState {
-    user: {
-        [K in UserKey]: Writable<User[K]>;
-    } & { fullname: Readable<string> };
+    user?: {
+        [K in UserKey]: User[K];
+    };
 }
 
 type SharedContextKey = keyof SharedContextState;
 
 function createUserState(user: User): SharedContextState['user'] {
-    const firstname = writable(user.firstname);
-    const lastname = writable(user.lastname);
-    const fullname = derived([firstname, lastname], ([$firstname, $lastname]) => {
-        return `${$firstname} ${$lastname}`;
+    const userState = $state({
+        firstname: user.firstname,
+        lastname: user.lastname,
     });
 
-    return {
-        firstname,
-        lastname,
-        fullname,
-    };
+    return userState;
 }
 
 export function createSharedContext(data: Context['data']): void {
-    // RUNES ARE BROKEN right now it seems
-    // const state = $state({
-    //   firstname: ctx.firstname,
-    //   lastname: ctx.lastname,
-    //   a: 1,
-    //   b: 3,
-    //   get fullname() {
-    //     console.log(111);
-    //     return `${this.firstname} ${this.lastname}`;
-    //   },
-    // });
+    const objectToUse = data.user ? { user: createUserState(data.user) } : {};
 
-    // let firstname = $state(ctx.firstname);
-    // let lastname = $state(ctx.lastname);
-    // const fullname = $derived(`${firstname} ${lastname}`);
-
-    setContext<SharedContextState>('shared', {
-        user: createUserState(data.user),
-    });
+    setContext<SharedContextState>('shared', objectToUse);
 }
 
-export function getSharedContext<T extends SharedContextKey>(key: T): SharedContextState[T] {
+export function getSharedContext<T extends SharedContextKey>(
+    key?: T,
+): SharedContextState | SharedContextState[T] {
     const context = getContext<SharedContextState>('shared');
+
+    if (!key) {
+        return context;
+    }
 
     return context[key];
 }

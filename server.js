@@ -7,11 +7,12 @@ const port = process.env.PORT || 5173;
 const base = process.env.BASE || '/';
 
 // Cached production assets
+// const templateHtml = '';
 const templateHtml = isProduction ? await fs.readFile('./dist/client/index.html', 'utf-8') : '';
 
-const ssrManifest = isProduction
-    ? await fs.readFile('./dist/client/.vite/ssr-manifest.json', 'utf-8')
-    : undefined;
+// const ssrManifest = isProduction
+//     ? await fs.readFile('./dist/client/.vite/ssr-manifest.json', 'utf-8')
+//     : undefined;
 
 // Create http server
 const app = express();
@@ -98,8 +99,12 @@ function useRoute(templateToRead, prodTemplate) {
                 path: req.originalUrl,
             };
 
+            if (req.originalUrl !== '/spa' && req.originalUrl !== '/spa1') {
+                ctx.data = {};
+            }
+
             // const rendered = await render(url, ssrManifest);
-            const rendered = await render(ctx);
+            const rendered = await render(ctx, req.body);
 
             const html = template
                 .replace(`<!--app-head-->`, rendered?.head ?? '')
@@ -123,6 +128,7 @@ function useRoute(templateToRead, prodTemplate) {
 }
 
 app.get('*', useRoute('./index.html', templateHtml));
+app.post('*', useRoute('./index.html', templateHtml));
 
 // Start http server
 app.listen(port, () => {

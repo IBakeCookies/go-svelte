@@ -1,5 +1,5 @@
 <script lang="ts">
-import { type Context, createSharedContext }  from './sharedContext.svelte';
+import { type Context, createSharedContext, getSharedContext }  from './sharedContext.svelte';
 import { router } from './router.svelte';
 import Loader from './loader.svelte';
 
@@ -8,6 +8,10 @@ let { ctx } = $props<{
 }>();
 
 createSharedContext(ctx.data);
+
+const context = getSharedContext();
+
+$inspect(context);
 
 // @todo move into a hydrator function?
 router.path = ctx.path;
@@ -21,7 +25,7 @@ function getCurrentRouteProps() {
     return router.currentRoute.props(router.currentRoute);
 }
 
-$effect(() => {
+$effect(() => { 
     if(!import.meta.env.SSR) {
         console.log('[router enter]', { router })
     }

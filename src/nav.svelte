@@ -3,7 +3,6 @@ import { router } from './router.svelte';
 
 function link(element: HTMLElement) {
     element.addEventListener('click', (event) => {
-
         const href = element.getAttribute('href');
 
         if(!href || href === '#') {
@@ -14,6 +13,21 @@ function link(element: HTMLElement) {
 
         router.push(href);
     });
+
+    // preload component if needed on hover
+    // element.addEventListener('mouseenter', (event) => {
+    //     const href = element.getAttribute('href');
+
+    //     if(!href || href === '#') {
+    //         return;
+    //     }
+
+    //     router.routes.forEach((route) => {
+    //         if(route.path === href) {
+    //             route.component();
+    //         }
+    //     });
+    // });
 }
 </script>
 
@@ -48,7 +62,7 @@ function link(element: HTMLElement) {
     <a  class="text-white mx-2 px-4 py-2 rouded bg-gray-600" href='/slug/1' use:link>
         slug with id 1
     </a>
-    
+
     <a  class="text-white mx-2 px-4 py-2 rouded bg-gray-600" href='/slug/2' use:link>
         slug with id 2
     </a>

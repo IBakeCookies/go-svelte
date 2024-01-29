@@ -8,10 +8,20 @@ export interface Route {
     isSsr: boolean;
     props?: any;
     beforeEnter?: () => Promise<void>;
+    group?: {
+        names: Set<string>;
+    };
 }
 
-interface RouteEnhanced extends Route {
-    params?: Record<string, string>;
+export interface RouteEnhanced extends Route {
+    params: Record<string, string>;
+}
+
+function createEnhancedRoute(route: Route): RouteEnhanced {
+    return {
+        ...route,
+        params: {},
+    };
 }
 
 const isServer = import.meta.env.SSR;
@@ -29,6 +39,7 @@ interface RouterState {
     component: null | SvelteComponent;
     isLoadingComponent: boolean;
     currentRoute: null | Route;
+    enteredGroupNames: Set<string>;
 }
 
 // @todo review code from copilot
@@ -93,7 +104,7 @@ async function importComponent(route: Route): Promise<SvelteComponent> {
     return route.component;
 }
 
-export function createRouter(routes: Route[]): RouterState {
+export function createRouter(routes: RouteEnhanced[]): RouterState {
     !isServer && listenToPopState(push);
 
     const state = $state<RouterState>({
@@ -101,9 +112,18 @@ export function createRouter(routes: Route[]): RouterState {
         push,
         path: '',
         component: null,
+        childComponent: null,
         isLoadingComponent: false,
         currentRoute: null,
+        enteredGroupNames: new Set(''),
     });
+
+    function hydrateEnteredGroupNames(targetRoute: RouteEnhanced) {
+        targetRoute.group?.names &&
+            targetRoute.group.names.forEach((name) => {
+                state.enteredGroupNames.add(name);
+            });
+    }
 
     async function push(path: string) {
         const targetRoute = findRouteAndExtractParams(routes, path);
@@ -124,6 +144,15 @@ export function createRouter(routes: Route[]): RouterState {
 
             const component = await importComponent(targetRoute);
 
+            // if (targetRoute.children) {
+            //     for (let child of targetRoute.children) {
+            //         if (child.path === '/') {
+            //             const module = await child.component();
+            //             state.childComponent = module.default;
+            //         }
+            //     }
+            // }
+
             state.component = component;
 
             return;
@@ -135,18 +164,25 @@ export function createRouter(routes: Route[]): RouterState {
             return;
         }
 
-        // in pop case current and target will be the same but its wrong: fix it
-        if (currentRoute.path === targetRoute.path) {
-            state.isLoadingComponent = true;
-
+        if (currentRoute.path === path) {
             targetRoute.beforeEnter && (await targetRoute.beforeEnter());
 
             await wait(250);
 
             const component = await importComponent(targetRoute);
 
+            // if (currentRoute.children) {
+            //     for (let child of currentRoute.children) {
+            //         if (child.path === '/') {
+            //             const module = await child.component();
+            //             state.childComponent = module.default;
+            //         }
+            //     }
+            // }
+
             state.component = component;
-            state.isLoadingComponent = false;
+
+            hydrateEnteredGroupNames(targetRoute);
 
             return;
         }
@@ -155,6 +191,18 @@ export function createRouter(routes: Route[]): RouterState {
             window.location.href = path;
 
             return;
+        }
+
+        if (targetRoute.group) {
+            const withinGroup = [...targetRoute.group.names].every((name) => {
+                return state.enteredGroupNames.has(name);
+            });
+
+            if (!withinGroup) {
+                window.location.href = path;
+
+                return;
+            }
         }
 
         state.isLoadingComponent = true;
@@ -169,10 +217,14 @@ export function createRouter(routes: Route[]): RouterState {
         state.isLoadingComponent = false;
         state.path = path;
 
+        hydrateEnteredGroupNames(targetRoute);
+
         window.history.pushState({}, '', path);
     }
 
     return state;
 }
 
-export const router = createRouter(routes);
+const enhancedRoutes = routes.map(createEnhancedRoute);
+
+export const router = createRouter(enhancedRoutes);
