@@ -2,6 +2,7 @@
 import { type Context, createSharedContext, getSharedContext }  from './sharedContext.svelte';
 import { router } from './router.svelte';
 import Loader from './loader.svelte';
+import './global.css';
 
 let { ctx } = $props<{ 
     ctx: Context; 

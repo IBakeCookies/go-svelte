@@ -41,9 +41,9 @@ export const routes = [
         component: () => import('./App3.svelte'),
         isSpa: true,
         isSsr: false,
-        // group: {
-        //     names: new Set('a'),
-        // },
+        group: {
+            names: new Set('a'),
+        },
     },
     {
         path: '/spa1',

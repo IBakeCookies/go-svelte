@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Go and Node Integration</title>
-      <script type="module" crossorigin src="/assets/index-hPJJBdSI.js"></script>
-      <link rel="stylesheet" crossorigin href="/assets/index-H-fpGIl1.css">
+    <link rel="icon" type="image/svg+xml" href="https://www.svgrepo.com/show/374167/vite.svg" />
+    <title>Go and Svelte Integration</title>
+    <script type="module" crossorigin src="/assets/index-LNfhH1Eu.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-2XPgsiX1.css">
 </head>
 <body>
-      <div id="app">
-        <!-- Insert Node response here -->
+    <div id="app">
         {{.NodeResponse}}
     </div>
 
-    <!-- Inject context data as a JavaScript variable -->
     <script>
         window.__ctx__ = {{.ContextJSON}};
     </script>

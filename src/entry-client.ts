@@ -18,7 +18,7 @@ async function mount() {
         },
     });
 
-    delete window.__ctx__;
+    // delete window.__ctx__;
 }
 
 mount();
