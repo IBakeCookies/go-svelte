@@ -1,17 +1,6 @@
 <script lang="ts">
-import { type Context, createSharedContext }  from './sharedContext.svelte';
 import { router } from './router.svelte';
 import Loader from './loader.svelte';
-import './global.css';
-
-let { ctx } = $props<{ 
-    ctx: Context; 
-}>();
-
-createSharedContext(ctx.data);
-
-// @todo move into a hydrator function?
-router.state.path = ctx.path;
 
 const isServer = import.meta.env.SSR;
 const routeProps = $derived(
@@ -37,6 +26,8 @@ $effect(() => {
     <svelte:component 
         this={router.state.component} 
         {...routeProps}
-    />
+    >
+        <!-- <RouterView /> -->
+    </svelte:component>
 {/if}
 

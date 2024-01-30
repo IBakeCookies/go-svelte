@@ -4,4 +4,6 @@ import Nav from './nav.svelte'
 
 <Nav/>
 
-<slot/>
+<slot />
+
+

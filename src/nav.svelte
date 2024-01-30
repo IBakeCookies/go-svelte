@@ -1,6 +1,7 @@
 <script lang="ts">
 import { router } from './router.svelte';
 import RouterLink from './RouterLink.svelte';
+console.log('nav');
 </script>
 
 <h1>You are on {router.state.path}</h1>

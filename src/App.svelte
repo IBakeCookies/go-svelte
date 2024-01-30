@@ -20,6 +20,8 @@ $effect(() => {
 
 <Nav/>
 
+<slot />
+
 <main>
     <h2>{factStore.fact}</h2>
 

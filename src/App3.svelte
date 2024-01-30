@@ -1,9 +1,7 @@
 <script>
-import Layout from './Layout.svelte';
+import Nav from './nav.svelte'
 </script>
 
-<Layout>
-    <div>SPA</div>
-</Layout>
+<Nav/>
 
-
+<div>SPA</div>

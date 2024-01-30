@@ -126,7 +126,11 @@ class Router {
                     this.state.childComponent = module.default;
                 }
             }
+
+            return;
         }
+
+        this.state.childComponent = null;
     }
 
     private addWindowListeners() {

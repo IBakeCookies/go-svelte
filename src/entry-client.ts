@@ -1,6 +1,6 @@
 import { createRoot } from 'svelte';
 import { router } from './router.svelte';
-import Router from './Router.svelte';
+import App from './app.svelte';
 
 async function mount() {
     const target = document.getElementById('app');
@@ -11,7 +11,7 @@ async function mount() {
 
     await router.push(window.location.pathname);
 
-    createRoot(Router, {
+    createRoot(App, {
         target,
         props: {
             ctx: window.__ctx__,

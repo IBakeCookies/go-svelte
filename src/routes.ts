@@ -19,7 +19,6 @@ export const routes = [
 
             console.log('[before enter home page]', { route });
         },
-
         group: {
             names: new Set('a'),
         },
@@ -30,15 +29,22 @@ export const routes = [
         beforeEnter: async (route: RouteEnhanced) => {
             console.log('[before enter about page]', { route });
         },
-        children: [
-            {
-                path: '',
-                component: () => import('./lib/Counter.svelte'),
-                beforeEnter: async () => {
-                    console.log('[before enter child page]');
-                },
-            },
-        ],
+        // children: [
+        //     {
+        //         path: '',
+        //         component: () => import('./page/about.svelte'),
+        //         beforeEnter: async () => {
+        //             console.log('[before enter about child page]');
+        //         },
+        //     },
+        //     {
+        //         path: 'spa',
+        //         component: () => import('./page/spa.svelte'),
+        //         beforeEnter: async () => {
+        //             console.log('[before enter spa child page]');
+        //         },
+        //     },
+        // ],
     },
     {
         path: '/spa',

@@ -1,9 +1,8 @@
 <script>
+import RouterView from './RouterView.svelte';
 import Layout from './Layout.svelte';
 </script>
 
 <Layout>
-    <div>SPA1</div>
+    <RouterView />
 </Layout>
-
-

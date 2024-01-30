@@ -1,10 +1,10 @@
 <script>
-import RouterChild from './RouterChild.svelte';
+import RouterView from './RouterView.svelte';
 import Layout from './Layout.svelte';
+import Router from './Router.svelte';
 </script>
 
 <Layout>
-    <main>ABOUT</main>
-
-    <RouterChild />
+    <!-- <RouterView /> -->
+    <slot></slot>
 </Layout>
