@@ -58,7 +58,7 @@ function useRoute() {
                 path: req.originalUrl,
             };
 
-            if (req.originalUrl !== '/spa' && req.originalUrl !== '/spa1') {
+            if (req.originalUrl !== '/') {
                 ctx.data = {};
             }
 

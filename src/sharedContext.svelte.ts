@@ -16,9 +16,11 @@ interface User {
 type UserKey = keyof User;
 
 export interface SharedContextState {
-    user?: {
-        [K in UserKey]: User[K];
-    };
+    user:
+        | {
+              [K in UserKey]: User[K];
+          }
+        | null;
 }
 
 type SharedContextKey = keyof SharedContextState;
@@ -33,10 +35,14 @@ function createUserState(user: User): SharedContextState['user'] {
 }
 
 export function createSharedContext(data: Context['data']): void {
-    const objectToUse = data.user ? { user: createUserState(data.user) } : {};
-
-    setContext<SharedContextState>('shared', objectToUse);
+    setContext<SharedContextState>('shared', {
+        user: data.user ? createUserState(data.user) : null,
+    });
 }
+
+export function getSharedContext<T extends never>(): SharedContextState;
+
+export function getSharedContext<T extends SharedContextKey>(key: T): SharedContextState[T];
 
 export function getSharedContext<T extends SharedContextKey>(
     key?: T,

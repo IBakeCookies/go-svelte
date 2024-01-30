@@ -1,25 +1,29 @@
 <script lang="ts">
 import svelteLogo from './assets/svelte.svg'
+import { factStore } from './lib/fact.svelte.ts';
+import { getSharedContext } from './sharedContext.svelte'
 import Counter from './lib/Counter.svelte'
 import Nav from './nav.svelte'
 
-let fact = $state('');
+const user = getSharedContext('user');
+const fullname = $derived(`${user?.firstname} ${user?.lastname}`);
 
-// $effect(async () => {
-//     const response = await fetch('https://catfact.ninja/fact');
-//     const data = await response.json();
+$effect(() => {
+    if(!user) {
+        return;
+    }
 
-//     fact = data.fact;
-// });
+    user.firstname = 'JANE';
+});
 
 </script>
 
 <Nav/>
 
 <main>
-    {fact}
+    <h2>{factStore.fact}</h2>
 
-    <h2>HOME PAGE</h2>
+    {fullname}
 
     <div class="card">
         <Counter />
@@ -31,7 +35,8 @@ let fact = $state('');
         </a> -->
 
         <a href="https://svelte.dev" target="_blank" rel="noreferrer"> 
-            <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
+            <img src={svelteLogo} alt="Svelte Logo" />
         </a>
     </div>
 </main>
+

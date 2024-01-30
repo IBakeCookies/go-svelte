@@ -6,10 +6,21 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 )
+
+type Entry struct {
+    File string   `json:"file"`
+    CSS  []string `json:"css"`
+}
+
+type TemplateData struct {
+    JS  string
+    CSS string
+}
 
 type User struct {
 	Firstname string `json:"firstname"`
@@ -24,6 +35,28 @@ type Context struct {
 }
 
 func main() {
+    file, errB := os.Open("./dist/client/manifest.json")
+    if errB != nil {
+        log.Fatal(errB)
+    }
+    defer file.Close()
+
+    data, errC := io.ReadAll(file)
+    if errC != nil {
+        log.Fatal(errC)
+    }
+
+    var entries map[string]Entry
+    errA := json.Unmarshal(data, &entries)
+    if errA != nil {
+        log.Fatal(errA)
+    }
+
+    templateData := TemplateData{
+        JS:  entries["src/entry-client.ts"].File,
+        CSS: entries["src/entry-client.ts"].CSS[0],
+    }
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/favicon.ico" {
 			user := User{
@@ -31,7 +64,7 @@ func main() {
 				Lastname:  "",
 			}
 
-            if r.URL.Path == "/spa" || r.URL.Path == "/spa1" {
+            if r.URL.Path == "/"  {
                 user = User{
                     Firstname: "John",
                     Lastname:  "Doe",
@@ -86,6 +119,8 @@ func main() {
 				err = tmpl.Execute(&renderedTemplate, map[string]interface{}{
 					"NodeResponse": template.HTML(string(nodeBody)),
 					"ContextJSON":  template.JS(string(contextJSON)),
+                    "Css": templateData.CSS,
+                    "Js": templateData.JS,
 				})
 				if err != nil {
 					http.Error(w, "Internal Server Error", http.StatusInternalServerError)

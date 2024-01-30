@@ -1,10 +1,10 @@
 <script>
-import Nav from './nav.svelte';
-// import RouterChild from './RouterChild.svelte';
+import RouterChild from './RouterChild.svelte';
+import Layout from './Layout.svelte';
 </script>
 
-<Nav/>
+<Layout>
+    <main>ABOUT</main>
 
-<main>ABOUT</main>
-
-<!-- <RouterChild /> -->
+    <RouterChild />
+</Layout>

@@ -2,10 +2,9 @@
 import { router } from './router.svelte';
 </script>
 
-
-{#if router.childComponent}
+{#if router.state.childComponent}
     <svelte:component 
-        this={router.childComponent} 
+        this={router.state.childComponent} 
     />
 {/if}
 

@@ -1,17 +1,16 @@
 <script lang="ts">
 import Nav from './nav.svelte'
 
-// add ability to pass props to route components
-// export let routeProps = {};
-// console.log(routeProps)
+let { id, test } = $props<{ 
+    id: string
+    test: string
+}>();
 
-export let props = {};
-
-console.log('[App] props', props);
+console.log('[route props]', id , test);
 </script>
 
 <Nav/>
     
 <div>SLUG</div>
-
-{JSON.stringify(props)}
+<div>id: {id}</div>
+<div>test: {test}</div>
