@@ -1,5 +1,5 @@
 import { createRoot } from 'svelte';
-import { router } from './router.svelte';
+import { router } from './router1.svelte';
 import App from './app.svelte';
 
 async function mount() {

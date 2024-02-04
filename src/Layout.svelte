@@ -1,9 +1,9 @@
 <script lang="ts">
-import Nav from './nav.svelte'
+import Router from './Router.svelte';
 </script>
 
-<Nav/>
-
-<slot />
+<header>HEADER</header>
+<Router />
+<footer>FOOTER</footer>
 
 

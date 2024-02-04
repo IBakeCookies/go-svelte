@@ -70,3 +70,103 @@ export const routes = [
         },
     },
 ];
+
+export const newRoutes = {
+    children: [
+        {
+            path: '/',
+            name: 'anyName',
+            component: {
+                load: () => import('./Layout.svelte'),
+                default: null,
+            },
+            children: [
+                {
+                    path: '',
+                    component: {
+                        load: () => import('./page/home.svelte'),
+                        default: null,
+                    },
+                    children: [
+                        {
+                            path: 'home',
+                            component: {
+                                load: () => {},
+                                default: null,
+                            },
+                        },
+                        {
+                            path: 'work',
+                            component: {
+                                load: () => {},
+                                default: null,
+                            },
+                        },
+                    ],
+                },
+                {
+                    path: 'about',
+                    component: {
+                        load: () => import('./page/about.svelte'),
+                        default: null,
+                    },
+                    children: [
+                        {
+                            path: '',
+                            component: {
+                                load: () => import('./page/ssr.svelte'),
+                                default: null,
+                            },
+                            children: [
+                                {
+                                    path: '',
+                                    component: {
+                                        load: () => import('./page/home.svelte'),
+                                        default: null,
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            path: '/root',
+                            component: {
+                                load: () => {},
+                                default: null,
+                            },
+                            children: [
+                                {
+                                    path: '/id/asd',
+                                    component: {
+                                        load: () => {},
+                                        default: null,
+                                    },
+                                },
+                                {
+                                    path: '/root2',
+                                    component: {
+                                        load: () => {},
+                                        default: null,
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            path: 'us',
+                            component: {
+                                load: () => import('./page/about-child.svelte'),
+                                default: null,
+                            },
+                        },
+                    ],
+                },
+                {
+                    path: 'whatever',
+                    component: {
+                        load: () => {},
+                        default: null,
+                    },
+                },
+            ],
+        },
+    ],
+};

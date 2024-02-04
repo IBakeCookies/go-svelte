@@ -4,6 +4,7 @@ import { factStore } from './lib/fact.svelte.ts';
 import { getSharedContext } from './sharedContext.svelte'
 import Counter from './lib/Counter.svelte'
 import Nav from './nav.svelte'
+import Router from './Router.svelte';
 
 const user = getSharedContext('user');
 const fullname = $derived(`${user?.firstname} ${user?.lastname}`);
@@ -18,9 +19,9 @@ $effect(() => {
 
 </script>
 
-<Nav/>
 
-<slot />
+
+<Nav/>
 
 <main>
     <h2>{factStore.fact}</h2>
@@ -42,3 +43,5 @@ $effect(() => {
     </div>
 </main>
 
+
+<Router />

@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 import { router } from './router.svelte';
 import RouterLink from './RouterLink.svelte';
 console.log('nav');
@@ -28,4 +28,4 @@ console.log('nav');
     <RouterLink modifier="text-white mx-2 px-4 py-2 rouded bg-gray-600" href="/slug/1">
         spa + ssr slug with id 1
     </RouterLink>
-</div>
+</div> -->
