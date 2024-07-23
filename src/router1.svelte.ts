@@ -1,6 +1,9 @@
 import type { SvelteComponent } from 'svelte';
-import { newRoutes } from './routes.ts';
-import { routerState } from './routerState.svelte';
+import { routes } from './routes.ts';
+
+interface RouteRoot {
+    children: Route[];
+}
 
 interface RouteShared {
     path: string;
@@ -10,6 +13,7 @@ interface RouteShared {
     group?: {
         names: Set<string>;
     };
+    fullPath?: string;
 }
 
 export interface Route extends RouteShared {
@@ -21,8 +25,10 @@ export interface Route extends RouteShared {
 export interface RouteEnhanced extends RouteShared {
     isSpa: boolean;
     isSsr: boolean;
+    fullPath: string;
     params?: Record<string, unknown>;
     children?: RouteEnhanced[];
+    parent: RouteEnhanced;
 }
 
 export interface RouterState {
@@ -42,33 +48,56 @@ function wait(milliseconds: number = 0): Promise<void> {
     });
 }
 
-class Router {
-    public routes: RouteEnhanced[];
-    public state: RouterState;
-    private _path = $state('');
-    public matches = $state([]);
-
-    constructor(routes: Readonly<Route[]>) {
-        // this.routes = routes.map(this.createEnhancedRoute)
-        this.routes = routes;
-        this.state = this.createState();
-        // this.path = path;
-        this.matches = this.matches;
-
-        !isServer && this.addWindowListeners();
+function getParentPath(childPath: string, parentPath?: string): string {
+    if (!parentPath) {
+        return '/';
     }
 
-    private createState(): RouterState {
-        const state = $state<RouterState>({
-            path: '',
-            component: null,
-            childComponent: null,
-            currentRoute: null,
-            enteredGroupNames: new Set(''),
-            isMounted: false,
-        });
+    const parentSplitted = parentPath.split('/');
+    const childSplitted = childPath.split('/');
 
-        return state;
+    if (childPath === '') {
+        return parentPath;
+    }
+
+    if (childSplitted[0] === '' && parentPath.length > 1) {
+        return childPath;
+    }
+
+    if (parentSplitted[0] !== '/' && parentPath.length > 1) {
+        return `${parentPath}/${childPath}`;
+    }
+
+    return `${parentPath}${childPath}`;
+}
+
+function createFullPath(routes: Record<string, Route[]>, parentRoute?: RouteEnhanced) {
+    const enhancedRoutes: Record<string, RouteEnhanced[]> = { ...routes };
+
+    if (!enhancedRoutes.children) {
+        return;
+    }
+
+    enhancedRoutes.children.forEach((route) => {
+        route.fullPath = getParentPath(route.path, parentRoute?.fullPath);
+        route.parent = parentRoute;
+
+        createFullPath(route, route);
+    });
+
+    return enhancedRoutes;
+}
+
+class Router {
+    public routes: RouteEnhanced[];
+    private _path = $state('');
+    private _matches = $state([]);
+
+    constructor(routes: Readonly<Route[]>) {
+        // this.routes = routes.map(this.createEnhancedRoute);
+        this.routes = createFullPath(routes);
+
+        !isServer && this.addWindowListeners();
     }
 
     private createEnhancedRoute(route: Route): RouteEnhanced {
@@ -131,31 +160,9 @@ class Router {
         // }
     }
 
-    private async importComponent(route: Route): Promise<SvelteComponent> {
-        if (typeof route.component === 'function') {
-            const module = await route.component();
+    private async importComponent(route: Route): Promise<SvelteComponent> {}
 
-            return module.default;
-        }
-
-        return route.component;
-    }
-
-    private async importChildrenComponents(currentRoute: RouteEnhanced) {
-        if (currentRoute.children) {
-            for (let child of currentRoute.children) {
-                if (child.path === '') {
-                    const module = await child.component();
-
-                    this.state.childComponent = module.default;
-                }
-            }
-
-            return;
-        }
-
-        this.state.childComponent = null;
-    }
+    private async importChildrenComponents(currentRoute: RouteEnhanced) {}
 
     private addWindowListeners() {
         this.listenToPopState();
@@ -322,8 +329,28 @@ class Router {
         this._path = value;
     }
 
+    public get matches() {
+        return this._matches;
+    }
+
+    public set matches(value: RouteEnhanced[]) {
+        this._matches = value;
+    }
+
+    private async importRouteComponents(targetRoute: RouteEnhanced) {
+        const promises = [];
+
+        targetRoute.forEach((route) => {
+            promises.push(route.component.load);
+        });
+
+        const results = await Promise.all(promises.map((p) => p()));
+
+        return results;
+    }
+
     public async push(path: string): Promise<void> {
-        this.matches = [];
+        this._matches = [];
         // this.path = '';
         // const targetRoute = this.findRoute(path);
 
@@ -341,18 +368,12 @@ class Router {
 
         const target = this.getRoute(path);
 
-        console.log('target', target);
+        const results = await this.importRouteComponents(target);
 
-        const promises = [];
+        console.log('res', results[0].default.name);
 
-        target.forEach((route) => {
-            promises.push(route.component.load);
-        });
-
-        const results = await Promise.all(promises.map((p) => p()));
-
-        this.matches = target.reduce((result, curr, i) => {
-            result[curr.path || `${curr.parent.path}-index`] = curr;
+        this._matches = target.reduce((result, curr, i) => {
+            result[curr.name || curr.path] = curr;
             curr.component.default = results[i].default;
 
             return result;
@@ -361,11 +382,7 @@ class Router {
         this.path = path;
 
         !isServer && window.history.pushState({}, '', path);
-
-        console.log('this.state.matches', this.matches);
-
-        console.log('end push', this);
     }
 }
 
-export const router = new Router(newRoutes);
+export const router = new Router(routes);

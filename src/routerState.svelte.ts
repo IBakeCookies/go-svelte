@@ -1,6 +1,4 @@
-import { newRoutes } from './routes.ts';
-
-export let test = $state({ name: 'asd' });
+import { routes } from './routes.ts';
 
 function getParentPath(childPath: string, parentPath: string): string {
     if (!parentPath) {
@@ -38,6 +36,6 @@ function createFullPath(routes, parentPath, parentRoute) {
     });
 }
 
-createFullPath(newRoutes);
+createFullPath(routes);
 
-export const routerState = $state({ state: newRoutes });
+export const routerState = $state(routes);

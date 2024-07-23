@@ -3,7 +3,7 @@ import { router } from '../router1.svelte';
 
 $effect(() => {
     setTimeout(() => {
-        router.push('/about');
+        // router.push('/about');
     }, 3000);
 })
 </script>

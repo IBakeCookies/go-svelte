@@ -11,29 +11,29 @@ import { getContext, onDestroy, setContext } from 'svelte';
 //     router.state.currentRoute.props(router.state.currentRoute)
 // );
 
-let { sidekick } = $props<{ sidekick: string }>();
+let { name } = $props<{ name?: string }>();
 
 const parentStore = getContext('router-store');
 
-let childrenStore = $state({ state: { children: [] } });
+let childrenStore = $state({ children: [] });
 
 setContext('router-store', childrenStore);
 
-parentStore.state.children.forEach(route => {
+parentStore.children.forEach(route => {
     if(!route.children?.length) {
         return;
     }
 
     route.children.forEach(child => {
-        childrenStore.state.children.push(child);
+        childrenStore.children.push(child);
     });
 })
 
 let component = $state(null);
 
 function hack () {
-    parentStore.state.children.forEach((childRoute) => {
-        const match = router.matches[childRoute.path || `${childRoute.parent.path}-index`];
+    parentStore.children.forEach((childRoute) => {
+        const match = router.matches[childRoute.name || childRoute.path];
 
         if(!match) {
             return;

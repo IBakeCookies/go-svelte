@@ -3,7 +3,7 @@ import './global.css';
 import Router from './Router.svelte';
 import { type Context, createSharedContext }  from './sharedContext.svelte';
 import { router } from './router1.svelte';
-import { getContext, onDestroy, setContext } from 'svelte';
+import { setContext } from 'svelte';
 import { routerState } from './routerState.svelte'; 
 
 let { ctx } = $props<{ 
@@ -11,9 +11,6 @@ let { ctx } = $props<{
 }>();
 
 createSharedContext(ctx.data);
-
-// @todo move into a hydrator function?
-// router.path = ctx.path;
 
 setContext('router-store',  routerState);
 
