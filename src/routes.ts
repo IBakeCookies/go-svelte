@@ -15,22 +15,28 @@ export const routes = {
                 load: () => import('./Layout.svelte'),
                 default: null,
             },
+            components: {
+                default: {
+                    load: () => import('./Layout.svelte'),
+                    component: null,
+                },
+            },
             children: [
                 {
                     name: 'home-index',
                     path: '',
                     component: {
                         load: () => import('./page/home.svelte'),
-                        default: null,
+                        component: null,
                     },
                     components: {
                         default: {
                             load: () => import('./page/home.svelte'),
-                            default: null,
+                            component: null,
                         },
                         test: {
                             load: () => import('./page/about.svelte'),
-                            default: null,
+                            component: null,
                         },
                     },
                     children: [
@@ -38,14 +44,14 @@ export const routes = {
                             path: 'home',
                             component: {
                                 load: () => {},
-                                default: null,
+                                component: null,
                             },
                         },
                         {
                             path: 'work',
                             component: {
                                 load: () => {},
-                                default: null,
+                                component: null,
                             },
                         },
                     ],

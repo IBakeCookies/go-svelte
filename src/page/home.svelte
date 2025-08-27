@@ -1,11 +1,29 @@
 <script lang="ts">
-import { router } from '../router1.svelte';
+// import { router } from '../router1.svelte';
+import { getSharedContext } from '../sharedContext.svelte.ts'
+
+const user = getSharedContext('user');
 
 $effect(() => {
     setTimeout(() => {
         // router.push('/about');
-    }, 3000);
+
+        if(!user) {
+            return;
+        }
+
+        user.firstname = 'Jane';
+    }, 1000);
 })
+
+
+
+
 </script>
 
-<h1>Home page</h1>
+<section class="bg-gray-700 p-4">
+    <h2>home.svelte</h2>
+    {user?.firstname} {user?.lastname}
+</section>
+
+

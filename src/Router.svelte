@@ -34,12 +34,16 @@ let component = $state(null);
 function hack () {
     parentStore.children.forEach((childRoute) => {
         const match = router.matches[childRoute.name || childRoute.path];
-
+       
         if(!match) {
             return;
         }
 
-        component = match.component.default;
+        if(name) {
+            component = match.components[name].component;
+        } else {
+            component = match.components.default.component;
+        }
     })
 }
 
@@ -50,9 +54,9 @@ $inspect(router.path, hack());
 
 {#if component}
     <svelte:component this={component}>
+       
     </svelte:component>
 {/if}
-
 <!-- {#if !router.state.isMounted && !isServer}
     <Loader />
 {/if} -->

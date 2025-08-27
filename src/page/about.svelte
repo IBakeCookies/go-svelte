@@ -2,6 +2,10 @@
 import Router from '../Router.svelte';
 </script>
 
-<h1>About page</h1>
 
-<Router name="sidekick" />
+<!-- <Router name="sidekick" /> -->
+
+<section class="bg-gray-700 p-4">
+    <h2>About page</h2>
+</section>
+

@@ -91,7 +91,7 @@ function createFullPath(routes: Record<string, Route[]>, parentRoute?: RouteEnha
 class Router {
     public routes: RouteEnhanced[];
     private _path = $state('');
-    private _matches = $state([]);
+    private _matches: RouteEnhanced[] = $state([]);
 
     constructor(routes: Readonly<Route[]>) {
         // this.routes = routes.map(this.createEnhancedRoute);
@@ -339,14 +339,21 @@ class Router {
 
     private async importRouteComponents(targetRoute: RouteEnhanced) {
         const promises = [];
+        const names = [];
 
         targetRoute.forEach((route) => {
-            promises.push(route.component.load);
+            Object.keys(route.components).forEach((key) => {
+                promises.push(route.components[key].load);
+                names.push(key);
+            });
         });
 
         const results = await Promise.all(promises.map((p) => p()));
 
-        return results;
+        return {
+            results,
+            names,
+        };
     }
 
     public async push(path: string): Promise<void> {
@@ -368,13 +375,25 @@ class Router {
 
         const target = this.getRoute(path);
 
-        const results = await this.importRouteComponents(target);
+        const { results, names } = await this.importRouteComponents(target);
 
-        console.log('res', results[0].default.name);
+        results.forEach((result) => {
+            console.log('dynamic import for component', result.default.name);
+        });
+
+        console.log({ target, results, names });
 
         this._matches = target.reduce((result, curr, i) => {
             result[curr.name || curr.path] = curr;
-            curr.component.default = results[i].default;
+
+            Object.keys(curr.components).forEach((key) => {
+                const index = names.indexOf(key);
+
+                curr.components[key].component = results[index].default;
+
+                names.splice(index, 1);
+                results.splice(index, 1);
+            });
 
             return result;
         }, {});

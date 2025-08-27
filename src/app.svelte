@@ -25,4 +25,12 @@ $effect(() => {
 $inspect(router);
 </script>
 
-<Router />
+<main class="bg-gray-900 p-4">
+    <h2>app.svelte</h2>
+    <Router />
+    
+    <!-- not working yet -->
+    <!-- <Router name="footer" /> -->
+</main>
+
+<!-- <Router name="test" /> -->
